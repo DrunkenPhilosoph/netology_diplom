@@ -5,6 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.authtoken.models import Token  # Импортируем модель токенов
 from django.core.mail import send_mail
 from .models import Shop, Category, Product, Cart, CartItem, Order, OrderItem, Address, CustomUser
+from .permissions import IsShopUser, IsOwnerOrReadOnly
 from .serializer import (
     ShopSerializer, CategorySerializer, ProductSerializer,
     CartSerializer, CartItemSerializer, OrderSerializer, OrderItemSerializer, AddressSerializer, CustomUserSerializer
@@ -19,13 +20,10 @@ class CustomUserViewSet(viewsets.ModelViewSet):
     # Определяем разрешения для каждого действия
     def get_permissions(self):
         if self.action == 'create':
-            # Разрешить доступ к методу create (регистрация) для всех
             permission_classes = [AllowAny]
         elif self.action == 'list':
-            # Разрешить доступ к методу list только администраторам
             permission_classes = [IsAdminUser]
         else:
-            # Для всех остальных действий требуется аутентификация
             permission_classes = [IsAuthenticated]
         return [permission() for permission in permission_classes]
 
@@ -45,19 +43,34 @@ class ShopViewSet(viewsets.ModelViewSet):
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsShopUser, IsOwnerOrReadOnly]
+
+    def get_queryset(self):
+        if self.request.user.user_type == 'shop':
+            return Product.objects.filter(shop__user=self.request.user)
+        return Product.objects.none()
 
     def perform_create(self, serializer):
-        if self.request.user.user_type == 'shop':
-            shop = Shop.objects.get(user=self.request.user)
-            serializer.save(shop=shop)
-        else:
-            return Response({'error': 'Only shops can create products'}, status=status.HTTP_403_FORBIDDEN)
+        serializer.save(shop=self.request.user.shop)
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    permission_classes = [IsAuthenticated, IsShopUser, IsOwnerOrReadOnly]
+
+    def get_queryset(self):
+        if self.request.user.user_type == 'shop':
+            return Category.objects.filter(shop__user=self.request.user)
+        return Category.objects.none()
+
+    def perform_create(self, serializer):
+
+        if self.request.user.user_type == 'shop':
+            serializer.save(shop=self.request.user.shop)
+        else:
+            return Response({'error': 'Only shops can create categories'}, status=status.HTTP_403_FORBIDDEN)
+
 
 
 class CartViewSet(viewsets.ModelViewSet):

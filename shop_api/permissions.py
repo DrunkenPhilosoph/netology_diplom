@@ -1,13 +1,20 @@
 from rest_framework.permissions import BasePermission
 
+class IsShopUser(BasePermission):
+    """
+    Разрешение только для пользователей типа "магазин".
+    """
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.user_type == 'shop'
+
+
 class IsOwnerOrReadOnly(BasePermission):
     """
-    Custom permission to allow only the owner of an object to edit or delete it.
+    Разрешение для владельцев объектов. Только владельцы могут редактировать или удалять объект.
     """
     def has_object_permission(self, request, view, obj):
-        # Разрешены безопасные методы (GET, HEAD, OPTIONS)
+        # Разрешить чтение всем запросам
         if request.method in ('GET', 'HEAD', 'OPTIONS'):
             return True
-
-        # Разрешено только владельцу объявления редактировать или удалять его
-        return obj.created_by == request.user
+        # Разрешить действия только владельцу объекта
+        return obj.shop.user == request.user

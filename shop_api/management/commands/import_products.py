@@ -1,6 +1,10 @@
-import yaml
 from django.core.management.base import BaseCommand
-from shop_api.models import Shop, Category, Product  # Импортируйте ваши модели
+import yaml
+from django.contrib.auth import get_user_model
+from shop_api.models import Product, Shop, Category
+
+# Получаем модель пользователя
+CustomUser = get_user_model()
 
 class Command(BaseCommand):
     help = 'Import products from YAML file'
@@ -10,35 +14,80 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         file_path = kwargs['file_path']
+        try:
+            with open(file_path, 'r', encoding='utf-8') as file:
+                data = yaml.safe_load(file)
 
-        with open(file_path, 'r', encoding='utf-8') as file:
-            data = yaml.safe_load(file)
+                # Проверка формата данных
+                if not isinstance(data, dict):
+                    self.stdout.write(self.style.ERROR('Invalid YAML format. Expected a dictionary.'))
+                    return
 
-        # Получаем или создаем магазин
-        shop_name = data.get('shop', '')
-        shop, created = Shop.objects.get_or_create(name=shop_name)
+                # Проверка и создание магазина
+                shop_name = data.get('shop')
+                if not shop_name:
+                    self.stdout.write(self.style.ERROR('Shop name is missing in the YAML file.'))
+                    return
 
-        # Импортируем категории
-        category_map = {}
-        for category in data.get('categories', []):
-            category_obj, created = Category.objects.get_or_create(
-                id=category['id'], name=category['name'])
-            category_map[category['id']] = category_obj
+                # Проверка наличия пользователя и создание магазина
+                try:
+                    user = CustomUser.objects.get(username='admin')  # Здесь нужно указать логин существующего пользователя
+                except CustomUser.DoesNotExist:
+                    self.stdout.write(self.style.ERROR('User for shop association does not exist.'))
+                    return
 
-        # Импортируем товары
-        for item in data.get('goods', []):
-            product, created = Product.objects.update_or_create(
-                id=item['id'],
-                defaults={
-                    'shop': shop,
-                    'category': category_map.get(item['category']),
-                    'model': item['model'],
-                    'name': item['name'],
-                    'price': item['price'],
-                    'price_rrc': item['price_rrc'],
-                    'quantity': item['quantity'],
-                    'parameters': item['parameters']
-                }
-            )
+                # Создаем или получаем магазин, привязанный к пользователю
+                shop, created = Shop.objects.get_or_create(name=shop_name, user=user)
+                if created:
+                    self.stdout.write(self.style.SUCCESS(f'Shop "{shop.name}" created.'))
+                else:
+                    self.stdout.write(self.style.SUCCESS(f'Shop "{shop.name}" already exists.'))
 
-        self.stdout.write(self.style.SUCCESS('Data imported successfully.'))
+                # Проверка и создание категорий
+                categories = data.get('categories', [])
+                for category_data in categories:
+                    category_id = category_data.get('id')
+                    category_name = category_data.get('name')
+                    if category_id and category_name:
+                        category, created = Category.objects.get_or_create(
+                            id=category_id,
+                            shop=shop,
+                            defaults={'name': category_name}
+                        )
+                        if created:
+                            self.stdout.write(self.style.SUCCESS(f'Category "{category.name}" (ID: {category_id}) created for shop "{shop.name}".'))
+                        else:
+                            self.stdout.write(self.style.SUCCESS(f'Category "{category.name}" (ID: {category_id}) already exists for shop "{shop.name}".'))
+
+                # Импорт товаров
+                goods = data.get('goods', [])
+                for item in goods:
+                    category_id = item.get('category')
+                    try:
+                        category = Category.objects.get(id=category_id, shop=shop)
+                    except Category.DoesNotExist:
+                        self.stdout.write(self.style.ERROR(f'Category with ID {category_id} does not exist for shop "{shop.name}". Skipping product {item.get("name")}.'))
+                        continue
+
+                    product_id = item.get('id')
+                    defaults = {
+                        'name': item.get('name'),
+                        'price': item.get('price'),
+                        'price_rrc': item.get('price_rrc'),
+                        'quantity': item.get('quantity'),
+                        'parameters': item.get('parameters'),
+                        'shop': shop,
+                        'category': category,
+                        'model': item.get('model'),
+                    }
+
+                    product, created = Product.objects.update_or_create(id=product_id, defaults=defaults)
+                    if created:
+                        self.stdout.write(self.style.SUCCESS(f'Product "{product.name}" created.'))
+                    else:
+                        self.stdout.write(self.style.SUCCESS(f'Product "{product.name}" updated.'))
+
+        except yaml.YAMLError as exc:
+            self.stdout.write(self.style.ERROR(f'Error parsing YAML file: {exc}'))
+        except Exception as e:
+            self.stdout.write(self.style.ERROR(f'An error occurred: {e}'))

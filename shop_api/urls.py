@@ -5,15 +5,15 @@ from .views import ProductViewSet, OrderViewSet, CartViewSet, AddressViewSet, Ca
     CustomUserViewSet
 
 router = DefaultRouter()
-router.register(r'users', CustomUserViewSet)
-router.register(r'shops', ShopViewSet)
-router.register(r'categories', CategoryViewSet)
-router.register(r'products', ProductViewSet)
-router.register(r'carts', CartViewSet)
-router.register(r'orders', OrderViewSet)
-router.register(r'addresses', AddressViewSet)
+router.register(r'users', CustomUserViewSet, basename='user')
+router.register(r'shops', ShopViewSet, basename='shop')
+router.register(r'products', ProductViewSet, basename='product')
+router.register(r'categories', CategoryViewSet, basename='category')
+router.register(r'carts', CartViewSet, basename='cart')
+router.register(r'orders', OrderViewSet, basename='order')
+router.register(r'addresses', AddressViewSet, basename='address')
 
-
+# Подключаем маршруты router к основному urls.py
 urlpatterns = [
-    path('', include(router.urls)),
+    path('api/', include(router.urls)),  # Добавляем все маршруты с префиксом api/
 ]

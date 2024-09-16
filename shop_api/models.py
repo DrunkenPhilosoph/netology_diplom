@@ -27,9 +27,10 @@ class Shop(models.Model):
 # Модель категории товара
 class Category(models.Model):
     name = models.CharField(max_length=255)
+    shop = models.ForeignKey(Shop, on_delete=models.CASCADE, related_name='categories')
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.shop.name})"
 
 
 # Модель товара
