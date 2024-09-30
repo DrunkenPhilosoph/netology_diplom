@@ -1,4 +1,5 @@
 from rest_framework import viewsets, status
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -35,9 +36,10 @@ class ShopViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         if self.request.user.user_type == 'shop':
+            # Сохраняем магазин с привязкой к текущему аутентифицированному пользователю
             serializer.save(user=self.request.user)
         else:
-            return Response({'error': 'Only shops can create a shop'}, status=status.HTTP_403_FORBIDDEN)
+            raise PermissionDenied({'error': 'Only shops can create a shop'})
 
 
 class ProductViewSet(viewsets.ModelViewSet):
@@ -54,10 +56,29 @@ class ProductViewSet(viewsets.ModelViewSet):
         serializer.save(shop=self.request.user.shop)
 
 
+
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsAuthenticated, IsShopUser, IsOwnerOrReadOnly]
+
+    def get_queryset(self):
+        """
+        Переопределяем метод get_queryset, чтобы пользователи могли видеть только свои категории.
+        """
+        if self.request.user.user_type == 'shop':
+            return Category.objects.filter(shop__user=self.request.user)
+        return Category.objects.none()
+
+    def perform_create(self, serializer):
+        """
+        Переопределяем метод perform_create, чтобы устанавливать владельца категории и проверять дублирование.
+        """
+        shop = self.request.user.shop
+        if Category.objects.filter(name=serializer.validated_data['name'], shop=shop).exists():
+            raise ValidationError({'name': 'Category with this name already exists for this shop.'})
+
+        serializer.save(shop=shop)
 
     def get_queryset(self):
         if self.request.user.user_type == 'shop':

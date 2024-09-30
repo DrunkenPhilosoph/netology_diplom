@@ -20,6 +20,7 @@ from rest_framework.authtoken.views import obtain_auth_token
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('shop_api.urls')),  # Подключаем urls вашего приложения
-    path('auth/', include('rest_framework.urls')),  # Эндпоинт для аутентификации по токену
+    path('', include('shop_api.urls')),  # Маршруты вашего приложения
+    path('auth/', include('rest_framework.urls')),  # Эндпоинты для авторизации через сессии
+    path('api-token-auth/', obtain_auth_token, name='api_token_auth'),  # Эндпоинт для токенов
 ]

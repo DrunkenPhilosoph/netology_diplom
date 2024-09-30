@@ -1,0 +1,117 @@
+### Регистрация нового пользователя (shop)
+POST http://127.0.0.1:8000/api/users/
+Content-Type: application/json
+
+{
+  "username": "shop_owner",
+  "password": "password123",
+  "user_type": "shop"
+}
+
+### Регистрация нового пользователя (customer)
+POST http://127.0.0.1:8000/api/users/
+Content-Type: application/json
+
+{
+  "username": "customer_user",
+  "password": "password123",
+  "user_type": "customer"
+}
+
+### Получение токена для пользователя
+POST http://127.0.0.1:8000/api-token-auth/
+Content-Type: application/json
+
+{
+  "username": "customer_user",
+  "password": "password123"
+}
+
+### Создание магазина
+POST http://127.0.0.1:8000/api/shops/
+Authorization: Token e9fd051efbc12991839a836ef87e6866445db2f6
+Content-Type: application/json
+
+{
+  "name": "New shop"
+}
+
+### Создание категории
+POST http://127.0.0.1:8000/api/categories/
+Authorization: Token e9fd051efbc12991839a836ef87e6866445db2f6
+Content-Type: application/json
+
+{
+  "name": "Electronics"
+}
+
+### Создание товара
+POST http://127.0.0.1:8000/api/products/
+Authorization: Token {{your_token}}
+Content-Type: application/json
+
+{
+  "name": "Smartphone",
+  "price": 500.00,
+  "price_rrc": 550.00,
+  "quantity": 10,
+  "model": "Model X",
+  "category": 1,
+  "parameters": {
+    "color": "black",
+    "memory": "128GB"
+  }
+}
+
+### Просмотр списка товаров
+GET http://127.0.0.1:8000/api/products/
+Authorization: Token {{your_token}}
+
+### Добавление товара в корзину
+POST http://127.0.0.1:8000/api/carts/1/add_product/
+Authorization: Token {{your_token}}
+Content-Type: application/json
+
+{
+  "product_id": 1,
+  "quantity": 2
+}
+
+### Удаление товара из корзины
+POST http://127.0.0.1:8000/api/carts/1/remove_product/
+Authorization: Token {{your_token}}
+Content-Type: application/json
+
+{
+  "product_id": 1
+}
+
+### Создание заказа
+POST http://127.0.0.1:8000/api/orders/
+Authorization: Token {{your_token}}
+Content-Type: application/json
+
+{
+  "address": 1  # ID адреса доставки
+}
+
+### Подтверждение заказа
+POST http://127.0.0.1:8000/api/orders/1/confirm_order/
+Authorization: Token {{your_token}}
+Content-Type: application/json
+
+### Создание адреса доставки
+POST http://127.0.0.1:8000/api/addresses/
+Authorization: Token {{your_token}}
+Content-Type: application/json
+
+{
+  "street": "Main St.",
+  "city": "Metropolis",
+  "postal_code": "12345",
+  "country": "Wonderland"
+}
+
+### Получение списка заказов
+GET http://127.0.0.1:8000/api/orders/
+Authorization: Token {{your_token}}
