@@ -13,7 +13,7 @@ POST http://127.0.0.1:8000/api/users/
 Content-Type: application/json
 
 {
-  "username": "customer_user",
+  "username": "pepiko",
   "password": "password123",
   "user_type": "customer"
 }
@@ -23,7 +23,7 @@ POST http://127.0.0.1:8000/api-token-auth/
 Content-Type: application/json
 
 {
-  "username": "customer_user",
+  "username": "pepiko",
   "password": "password123"
 }
 
@@ -65,30 +65,30 @@ Content-Type: application/json
 
 ### Просмотр списка товаров
 GET http://127.0.0.1:8000/api/products/
-Authorization: Token {{your_token}}
+Authorization: Token f372d757c53744fcfe244ece67820b9561c2e9f2
 
 ### Добавление товара в корзину
 POST http://127.0.0.1:8000/api/carts/1/add_product/
-Authorization: Token {{your_token}}
+Authorization: Token f372d757c53744fcfe244ece67820b9561c2e9f2
 Content-Type: application/json
 
 {
-  "product_id": 1,
-  "quantity": 2
+  "product_id": 4,
+  "quantity": 1
 }
 
 ### Удаление товара из корзины
 POST http://127.0.0.1:8000/api/carts/1/remove_product/
-Authorization: Token {{your_token}}
+Authorization: Token f372d757c53744fcfe244ece67820b9561c2e9f2
 Content-Type: application/json
 
 {
-  "product_id": 1
+  "product_id": 2
 }
 
 ### Создание заказа
 POST http://127.0.0.1:8000/api/orders/
-Authorization: Token {{your_token}}
+Authorization: Token f372d757c53744fcfe244ece67820b9561c2e9f2
 Content-Type: application/json
 
 {
@@ -97,12 +97,12 @@ Content-Type: application/json
 
 ### Подтверждение заказа
 POST http://127.0.0.1:8000/api/orders/1/confirm_order/
-Authorization: Token {{your_token}}
+Authorization: Token f372d757c53744fcfe244ece67820b9561c2e9f2
 Content-Type: application/json
 
 ### Создание адреса доставки
 POST http://127.0.0.1:8000/api/addresses/
-Authorization: Token {{your_token}}
+Authorization: Token f372d757c53744fcfe244ece67820b9561c2e9f2
 Content-Type: application/json
 
 {
@@ -114,4 +114,4 @@ Content-Type: application/json
 
 ### Получение списка заказов
 GET http://127.0.0.1:8000/api/orders/
-Authorization: Token {{your_token}}
+Authorization: Token f372d757c53744fcfe244ece67820b9561c2e9f2

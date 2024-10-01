@@ -12,7 +12,6 @@ from .serializer import (
     CartSerializer, CartItemSerializer, OrderSerializer, OrderItemSerializer, AddressSerializer, CustomUserSerializer
 )
 
-
 # Viewset для пользователей
 class CustomUserViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()
@@ -36,7 +35,6 @@ class ShopViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         if self.request.user.user_type == 'shop':
-            # Сохраняем магазин с привязкой к текущему аутентифицированному пользователю
             serializer.save(user=self.request.user)
         else:
             raise PermissionDenied({'error': 'Only shops can create a shop'})
@@ -45,15 +43,22 @@ class ShopViewSet(viewsets.ModelViewSet):
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    permission_classes = [IsAuthenticated, IsShopUser, IsOwnerOrReadOnly]
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]  # Разрешаем доступ всем пользователям для просмотра продуктов
+        return [IsAuthenticated(), IsShopUser(), IsOwnerOrReadOnly()]
 
     def get_queryset(self):
-        if self.request.user.user_type == 'shop':
+        if self.request.method == 'GET':
+            return Product.objects.all()  # Позволяем всем пользователям просматривать продукты
+        elif self.request.user.user_type == 'shop':
             return Product.objects.filter(shop__user=self.request.user)
         return Product.objects.none()
 
     def perform_create(self, serializer):
         serializer.save(shop=self.request.user.shop)
+
 
 
 
@@ -93,19 +98,26 @@ class CategoryViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Only shops can create categories'}, status=status.HTTP_403_FORBIDDEN)
 
 
-
 class CartViewSet(viewsets.ModelViewSet):
-    queryset = Cart.objects.all()
     serializer_class = CartSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Создаем корзину для пользователя, если ее нет
+        Cart.objects.get_or_create(user=self.request.user)
+        return Cart.objects.filter(user=self.request.user)
 
     @action(detail=True, methods=['post'])
     def add_product(self, request, pk=None):
         cart = self.get_object()
         product_id = request.data.get('product_id')
-        quantity = request.data.get('quantity', 1)
+        quantity = request.data.get('quantity')
 
-        product = Product.objects.get(id=product_id)
+        try:
+            product = Product.objects.get(id=product_id)
+        except Product.DoesNotExist:
+            return Response({'detail': 'Product not found.'}, status=404)
+
         cart_item, created = CartItem.objects.get_or_create(cart=cart, product=product)
         cart_item.quantity += int(quantity)
         cart_item.save()
@@ -117,8 +129,16 @@ class CartViewSet(viewsets.ModelViewSet):
         cart = self.get_object()
         product_id = request.data.get('product_id')
 
-        product = Product.objects.get(id=product_id)
-        cart_item = CartItem.objects.get(cart=cart, product=product)
+        try:
+            product = Product.objects.get(id=product_id)
+        except Product.DoesNotExist:
+            return Response({'detail': 'Product not found.'}, status=404)
+
+        try:
+            cart_item = CartItem.objects.get(cart=cart, product=product)
+        except CartItem.DoesNotExist:
+            return Response({'detail': 'Product not in cart.'}, status=404)
+
         cart_item.delete()
 
         return Response({'status': 'Product removed from cart'})
