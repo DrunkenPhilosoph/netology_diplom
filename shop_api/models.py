@@ -3,19 +3,18 @@ from django.contrib.auth.models import AbstractUser, Permission, Group
 from django.contrib.auth.models import User
 
 
-# Расширенная модель пользователя для поддержки двух типов пользователей
 class CustomUser(AbstractUser):
     USER_TYPE_CHOICES = (
         ('customer', 'Customer'),
         ('shop', 'Shop'),
     )
+    email = models.EmailField(unique=True, blank=False, null=False)  # Указываем email обязательным и уникальным
     user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES, default='customer')
 
     def __str__(self):
         return self.username
 
 
-# Модель магазина
 class Shop(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='shop')
     name = models.CharField(max_length=255)
@@ -24,7 +23,6 @@ class Shop(models.Model):
         return self.name
 
 
-# Модель категории товара
 class Category(models.Model):
     name = models.CharField(max_length=255)
     shop = models.ForeignKey(Shop, on_delete=models.CASCADE, related_name='categories')
@@ -33,7 +31,6 @@ class Category(models.Model):
         return f"{self.name} ({self.shop.name})"
 
 
-# Модель товара
 class Product(models.Model):
     shop = models.ForeignKey(Shop, on_delete=models.CASCADE, related_name='products')
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='products')
@@ -48,7 +45,6 @@ class Product(models.Model):
         return self.name
 
 
-# Модель адреса доставки
 class Address(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='addresses')
     street = models.CharField(max_length=255)
@@ -60,7 +56,6 @@ class Address(models.Model):
         return f"{self.street}, {self.city}"
 
 
-# Модель корзины
 class Cart(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='carts')
     products = models.ManyToManyField(Product, through='CartItem')
@@ -69,7 +64,6 @@ class Cart(models.Model):
         return f"Cart of {self.user.username}"
 
 
-# Модель элементов корзины
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
@@ -79,7 +73,6 @@ class CartItem(models.Model):
         return f"{self.product.name} x {self.quantity}"
 
 
-# Модель заказа
 class Order(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='orders')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -97,7 +90,6 @@ class Order(models.Model):
         return f"Order #{self.id} by {self.user.username}"
 
 
-# Модель элемента заказа
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)

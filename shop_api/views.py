@@ -17,7 +17,6 @@ class CustomUserViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
 
-    # Определяем разрешения для каждого действия
     def get_permissions(self):
         if self.action == 'create':
             permission_classes = [AllowAny]
@@ -46,12 +45,12 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.request.method == 'GET':
-            return [AllowAny()]  # Разрешаем доступ всем пользователям для просмотра продуктов
+            return [AllowAny()]
         return [IsAuthenticated(), IsShopUser(), IsOwnerOrReadOnly()]
 
     def get_queryset(self):
         if self.request.method == 'GET':
-            return Product.objects.all()  # Позволяем всем пользователям просматривать продукты
+            return Product.objects.all()
         elif self.request.user.user_type == 'shop':
             return Product.objects.filter(shop__user=self.request.user)
         return Product.objects.none()

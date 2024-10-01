@@ -13,7 +13,6 @@ router.register(r'carts', CartViewSet, basename='cart')
 router.register(r'orders', OrderViewSet, basename='order')
 router.register(r'addresses', AddressViewSet, basename='address')
 
-# Подключаем маршруты router к основному urls.py
 urlpatterns = [
-    path('api/', include(router.urls)),  # Добавляем все маршруты с префиксом api/
+    path('api/', include(router.urls)),
 ]

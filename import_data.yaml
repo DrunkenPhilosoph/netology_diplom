@@ -1,7 +1,5 @@
 shop: Связной
 categories:
-  - id: 2
-    name: Игры
   - id: 10
     name: Перифирия
   - id: 3

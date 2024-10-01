@@ -3,6 +3,7 @@ POST http://127.0.0.1:8000/api/users/
 Content-Type: application/json
 
 {
+  "email": "pepiks@ya.ru",
   "username": "shop_owner",
   "password": "password123",
   "user_type": "shop"
@@ -13,6 +14,7 @@ POST http://127.0.0.1:8000/api/users/
 Content-Type: application/json
 
 {
+  "email": "pks@ya.ru",
   "username": "pepiko",
   "password": "password123",
   "user_type": "customer"
@@ -29,16 +31,16 @@ Content-Type: application/json
 
 ### Создание магазина
 POST http://127.0.0.1:8000/api/shops/
-Authorization: Token e9fd051efbc12991839a836ef87e6866445db2f6
+Authorization: Token 7c83f3eff30485e6e2ae835c8db9ecd9dd2f93d6
 Content-Type: application/json
 
 {
-  "name": "New shop"
+  "name": "New"
 }
 
 ### Создание категории
 POST http://127.0.0.1:8000/api/categories/
-Authorization: Token e9fd051efbc12991839a836ef87e6866445db2f6
+Authorization: Token 7c83f3eff30485e6e2ae835c8db9ecd9dd2f93d6
 Content-Type: application/json
 
 {
@@ -47,7 +49,7 @@ Content-Type: application/json
 
 ### Создание товара
 POST http://127.0.0.1:8000/api/products/
-Authorization: Token {{your_token}}
+Authorization: Token 7c83f3eff30485e6e2ae835c8db9ecd9dd2f93d6
 Content-Type: application/json
 
 {
@@ -56,7 +58,8 @@ Content-Type: application/json
   "price_rrc": 550.00,
   "quantity": 10,
   "model": "Model X",
-  "category": 1,
+  "category": 2,
+  "shop": "New",
   "parameters": {
     "color": "black",
     "memory": "128GB"
@@ -65,47 +68,49 @@ Content-Type: application/json
 
 ### Просмотр списка товаров
 GET http://127.0.0.1:8000/api/products/
-Authorization: Token f372d757c53744fcfe244ece67820b9561c2e9f2
+
 
 ### Добавление товара в корзину
 POST http://127.0.0.1:8000/api/carts/1/add_product/
-Authorization: Token f372d757c53744fcfe244ece67820b9561c2e9f2
+Authorization: Token 06ad26cad1c8e7af349c34dd3c08dabbfb1e1820
 Content-Type: application/json
 
 {
-  "product_id": 4,
+  "product_id": 222252,
   "quantity": 1
 }
 
 ### Удаление товара из корзины
 POST http://127.0.0.1:8000/api/carts/1/remove_product/
-Authorization: Token f372d757c53744fcfe244ece67820b9561c2e9f2
+Authorization: Token 06ad26cad1c8e7af349c34dd3c08dabbfb1e1820
 Content-Type: application/json
 
 {
-  "product_id": 2
+  "product_id": 222252
 }
 
 ### Создание заказа
 POST http://127.0.0.1:8000/api/orders/
-Authorization: Token f372d757c53744fcfe244ece67820b9561c2e9f2
+Authorization: Token 06ad26cad1c8e7af349c34dd3c08dabbfb1e1820
 Content-Type: application/json
 
 {
-  "address": 1  # ID адреса доставки
+  "user": 3,
+  "address": 1
 }
 
 ### Подтверждение заказа
 POST http://127.0.0.1:8000/api/orders/1/confirm_order/
-Authorization: Token f372d757c53744fcfe244ece67820b9561c2e9f2
+Authorization: Token 06ad26cad1c8e7af349c34dd3c08dabbfb1e1820
 Content-Type: application/json
 
 ### Создание адреса доставки
 POST http://127.0.0.1:8000/api/addresses/
-Authorization: Token f372d757c53744fcfe244ece67820b9561c2e9f2
+Authorization: Token 06ad26cad1c8e7af349c34dd3c08dabbfb1e1820
 Content-Type: application/json
 
 {
+  "user": 3,
   "street": "Main St.",
   "city": "Metropolis",
   "postal_code": "12345",
@@ -114,4 +119,4 @@ Content-Type: application/json
 
 ### Получение списка заказов
 GET http://127.0.0.1:8000/api/orders/
-Authorization: Token f372d757c53744fcfe244ece67820b9561c2e9f2
+Authorization: Token 06ad26cad1c8e7af349c34dd3c08dabbfb1e1820
