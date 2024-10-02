@@ -9,7 +9,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'email', 'user_type', 'password']
         extra_kwargs = {
             'password': {'write_only': True},
-            'email': {'required': True}  # Делаем поле email обязательным
+            'email': {'required': True}
         }
 
     def create(self, validated_data):
@@ -22,7 +22,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
 class ShopSerializer(serializers.ModelSerializer):
     class Meta:
         model = Shop
-        fields = ['id', 'name']  # Исключаем поле user, чтобы оно не требовалось в запросе
+        fields = ['id', 'name']
 
     def create(self, validated_data):
         request = self.context.get('request')
@@ -34,43 +34,38 @@ class ShopSerializer(serializers.ModelSerializer):
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ['id', 'name']  # Исключаем поле shop, чтобы оно не требовалось в запросе
+        fields = ['id', 'name']
 
     def create(self, validated_data):
         request = self.context.get('request')
         shop = request.user.shop if request and hasattr(request, 'user') else None
 
-        # Проверяем, существует ли категория с таким именем для данного магазина
         if Category.objects.filter(name=validated_data['name'], shop=shop).exists():
-            raise ValidationError({"name": "Category with this name already exists for this shop."})
+            raise ValidationError({"name": "Категория для этого магазина уже существует."})
 
         validated_data['shop'] = shop
         return super().create(validated_data)
 
 
 class ProductSerializer(serializers.ModelSerializer):
-    shop = serializers.CharField(write_only=True)  # Принимаем название магазина как строку
-    category = serializers.CharField(write_only=True)  # Принимаем название категории как строку
+    shop = serializers.CharField(write_only=True)
+    category = serializers.CharField(write_only=True)
 
     class Meta:
         model = Product
         fields = ['id', 'name', 'price', 'price_rrc', 'quantity', 'model', 'category', 'parameters', 'shop']
 
     def validate(self, data):
-        # Получаем объект магазина по названию
         try:
             shop = Shop.objects.get(name=data['shop'])
         except Shop.DoesNotExist:
-            raise serializers.ValidationError({"shop": "Shop with this name does not exist."})
+            raise serializers.ValidationError({"shop": "Магазин с таким именем не существует."})
 
-        # Проверяем существование категории для данного магазина
         try:
             category = Category.objects.get(name=data['category'], shop=shop)
         except Category.DoesNotExist:
-            # Если категория не существует, создаем новую категорию
             category = Category.objects.create(name=data['category'], shop=shop)
 
-        # Устанавливаем объекты вместо строк
         data['shop'] = shop
         data['category'] = category
         return data

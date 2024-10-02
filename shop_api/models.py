@@ -8,7 +8,7 @@ class CustomUser(AbstractUser):
         ('customer', 'Customer'),
         ('shop', 'Shop'),
     )
-    email = models.EmailField(unique=True, blank=False, null=False)  # Указываем email обязательным и уникальным
+    email = models.EmailField(unique=True, blank=False, null=False)
     user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES, default='customer')
 
     def __str__(self):

@@ -3,7 +3,6 @@ import yaml
 from django.contrib.auth import get_user_model
 from shop_api.models import Product, Shop, Category
 
-# Получаем модель пользователя
 CustomUser = get_user_model()
 
 class Command(BaseCommand):
@@ -18,32 +17,27 @@ class Command(BaseCommand):
             with open(file_path, 'r', encoding='utf-8') as file:
                 data = yaml.safe_load(file)
 
-                # Проверка формата данных
                 if not isinstance(data, dict):
                     self.stdout.write(self.style.ERROR('Invalid YAML format. Expected a dictionary.'))
                     return
 
-                # Проверка и создание магазина
                 shop_name = data.get('shop')
                 if not shop_name:
                     self.stdout.write(self.style.ERROR('Shop name is missing in the YAML file.'))
                     return
 
-                # Проверка наличия пользователя и создание магазина
                 try:
-                    user = CustomUser.objects.get(username='admin')  # Здесь нужно указать логин существующего пользователя
+                    user = CustomUser.objects.get(username='admin')
                 except CustomUser.DoesNotExist:
                     self.stdout.write(self.style.ERROR('User for shop association does not exist.'))
                     return
 
-                # Создаем или получаем магазин, привязанный к пользователю
                 shop, created = Shop.objects.get_or_create(name=shop_name, user=user)
                 if created:
                     self.stdout.write(self.style.SUCCESS(f'Shop "{shop.name}" created.'))
                 else:
                     self.stdout.write(self.style.SUCCESS(f'Shop "{shop.name}" already exists.'))
 
-                # Проверка и создание категорий
                 categories = data.get('categories', [])
                 for category_data in categories:
                     category_id = category_data.get('id')
@@ -59,7 +53,6 @@ class Command(BaseCommand):
                         else:
                             self.stdout.write(self.style.SUCCESS(f'Category "{category.name}" (ID: {category_id}) already exists for shop "{shop.name}".'))
 
-                # Импорт товаров
                 goods = data.get('goods', [])
                 for item in goods:
                     category_id = item.get('category')

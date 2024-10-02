@@ -1,21 +1,21 @@
-### Регистрация нового пользователя (shop)
+### Регистрация нового пользователя (Магазин)
 POST http://127.0.0.1:8000/api/users/
 Content-Type: application/json
 
 {
-  "email": "pepiks@ya.ru",
-  "username": "shop_owner",
+  "email": "clamerr@yandex.ru",
+  "username": "clamerr",
   "password": "password123",
   "user_type": "shop"
 }
 
-### Регистрация нового пользователя (customer)
+### Регистрация нового пользователя (Пользователь)
 POST http://127.0.0.1:8000/api/users/
 Content-Type: application/json
 
 {
-  "email": "pks@ya.ru",
-  "username": "pepiko",
+  "email": "clamerr@yandex.ru",
+  "username": "clamerr",
   "password": "password123",
   "user_type": "customer"
 }
@@ -25,7 +25,7 @@ POST http://127.0.0.1:8000/api-token-auth/
 Content-Type: application/json
 
 {
-  "username": "pepiko",
+  "username": "clamerr",
   "password": "password123"
 }
 
@@ -71,12 +71,12 @@ GET http://127.0.0.1:8000/api/products/
 
 
 ### Добавление товара в корзину
-POST http://127.0.0.1:8000/api/carts/1/add_product/
-Authorization: Token 06ad26cad1c8e7af349c34dd3c08dabbfb1e1820
+POST http://127.0.0.1:8000/api/carts/2/add_product/
+Authorization: Token 32545c448986fbf30661244cdbfcc864762d1326
 Content-Type: application/json
 
 {
-  "product_id": 222252,
+  "product_id": 1,
   "quantity": 1
 }
 
@@ -95,12 +95,12 @@ Authorization: Token 06ad26cad1c8e7af349c34dd3c08dabbfb1e1820
 Content-Type: application/json
 
 {
-  "user": 3,
+  "user": 4,
   "address": 1
 }
 
 ### Подтверждение заказа
-POST http://127.0.0.1:8000/api/orders/1/confirm_order/
+POST http://127.0.0.1:8000/api/orders/3/confirm_order/
 Authorization: Token 06ad26cad1c8e7af349c34dd3c08dabbfb1e1820
 Content-Type: application/json
 
